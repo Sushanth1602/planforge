@@ -58,6 +58,7 @@ interface PlanForgeContextType {
   activeWorkspaceId: string | null;
   unreadNotificationsCount: number;
   isSupabaseMode: boolean;
+  fetchSupabaseData: () => Promise<void>;
 
   // Auth Actions
   setCurrentUser: (user: UserProfile) => void | Promise<void>;
@@ -778,35 +779,73 @@ export function PlanForgeProvider({ children }: { children: React.ReactNode }) {
       (u) => u.id === emailOrUserId || u.email.toLowerCase() === emailOrUserId.toLowerCase()
     );
 
+    if (IS_SUPABASE_CONNECTED) {
+      if (existingUser) {
+        const { error } = await supabase.from("workspace_members").insert({
+          workspace_id: workspaceId,
+          user_id: existingUser.id,
+          role,
+        } as any);
+        if (error) {
+          console.error("Failed to add workspace member:", {
+            message: error?.message,
+            code: error?.code,
+            details: error?.details,
+            hint: error?.hint,
+          });
+          return false;
+        }
+
+        // Add Notification
+        await supabase.from("notifications").insert({
+          user_id: existingUser.id,
+          workspace_id: workspaceId,
+          title: "Workspace Invitation",
+          message: `You were added to workspace as ${role}`,
+          type: "workspace_invitation",
+        } as any);
+
+        await logActivity(workspaceId, "member_joined", "member", `${existingUser.full_name || existingUser.email} joined as ${role}`);
+        await fetchSupabaseData();
+        return true;
+      } else {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) return false;
+
+        const { data: invite, error } = await supabase.from("invitations").insert({
+          workspace_id: workspaceId,
+          email: emailOrUserId.toLowerCase(),
+          role,
+          invited_by: user.id,
+        }).select().single() as { data: any | null; error: any };
+
+        if (error || !invite) {
+          console.error("Failed to create workspace invitation:", {
+            message: error?.message,
+            code: error?.code,
+            details: error?.details,
+            hint: error?.hint,
+          });
+          return false;
+        }
+
+        // Output invite link to console for testing/production deployment mapping
+        const inviteLink = `${window.location.origin}/accept-invitation?code=${invite.id}`;
+        console.log("Workspace invitation link generated:", inviteLink);
+
+        await logActivity(workspaceId, "member_invited", "member", `${emailOrUserId} invited as ${role}`);
+        await fetchSupabaseData();
+        return true;
+      }
+    }
+
+    // Local Storage Fallback
     const targetUser: UserProfile = existingUser || {
       id: "u-" + Math.random().toString(36).substring(2, 9),
       email: emailOrUserId.includes("@") ? emailOrUserId : `${emailOrUserId}@team.dev`,
       full_name: emailOrUserId.includes("@") ? emailOrUserId.split("@")[0] : emailOrUserId,
     };
 
-    if (IS_SUPABASE_CONNECTED) {
-      const { error } = await supabase.from("workspace_members").insert({
-        workspace_id: workspaceId,
-        user_id: targetUser.id,
-        role,
-      } as any);
-      if (error) return false;
-
-      // Add Notification
-      await supabase.from("notifications").insert({
-        user_id: targetUser.id,
-        workspace_id: workspaceId,
-        title: "Workspace Invitation",
-        message: `You were added to workspace as ${role}`,
-        type: "workspace_invitation",
-      } as any);
-
-      await logActivity(workspaceId, "member_joined", "member", `${targetUser.full_name || targetUser.email} joined as ${role}`);
-      await fetchSupabaseData();
-      return true;
-    }
-
-    // Local Storage Fallback
     const isAlreadyMember = members.some((m) => m.workspace_id === workspaceId && m.user_id === targetUser.id);
     if (isAlreadyMember) return false;
 
@@ -1438,6 +1477,7 @@ export function PlanForgeProvider({ children }: { children: React.ReactNode }) {
       activeWorkspaceId,
       unreadNotificationsCount,
       isSupabaseMode: Boolean(IS_SUPABASE_CONNECTED),
+      fetchSupabaseData,
       setCurrentUser,
       login,
       signup,
@@ -1485,6 +1525,7 @@ export function PlanForgeProvider({ children }: { children: React.ReactNode }) {
       notifications,
       activeWorkspaceId,
       unreadNotificationsCount,
+      fetchSupabaseData,
       getWorkspaceMembers,
       getWorkspaceStats,
       getGlobalStats,

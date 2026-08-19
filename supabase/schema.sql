@@ -235,6 +235,8 @@ CREATE TRIGGER tr_comments_updated_at BEFORE UPDATE ON public.comments FOR EACH 
 -- AUTOMATIC PROFILE CREATION TRIGGER ON AUTH SIGNUP
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+    inv RECORD;
 BEGIN
     INSERT INTO public.profiles (id, email, full_name, avatar_url)
     VALUES (
@@ -244,9 +246,24 @@ BEGIN
         COALESCE(NEW.raw_user_meta_data->>'avatar_url', NULL)
     )
     ON CONFLICT (id) DO NOTHING;
+
+    -- Auto-accept any pending invitations for this email
+    FOR inv IN 
+        SELECT * FROM public.invitations 
+        WHERE LOWER(email) = LOWER(NEW.email) AND accepted_at IS NULL
+    LOOP
+        INSERT INTO public.workspace_members (workspace_id, user_id, role)
+        VALUES (inv.workspace_id, NEW.id, inv.role)
+        ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
+        UPDATE public.invitations 
+        SET accepted_at = NOW() 
+        WHERE id = inv.id;
+    END LOOP;
+
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
@@ -399,3 +416,69 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.activity_events;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.milestones;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.goals;
+
+-- 15. INVITATIONS TABLE
+CREATE TABLE IF NOT EXISTS public.invitations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    role workspace_role NOT NULL DEFAULT 'member',
+    invited_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    accepted_at TIMESTAMPTZ
+);
+
+-- Enable RLS on invitations
+ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
+
+-- Invitations RLS Policies
+DROP POLICY IF EXISTS "Users can view invitations" ON public.invitations;
+CREATE POLICY "Users can view invitations" ON public.invitations
+    FOR SELECT TO authenticated
+    USING (
+        LOWER(email) = LOWER(auth.jwt()->>'email')
+        OR public.is_workspace_owner_or_admin(workspace_id, auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Owners and admins can create invitations" ON public.invitations;
+CREATE POLICY "Owners and admins can create invitations" ON public.invitations
+    FOR INSERT TO authenticated
+    WITH CHECK (
+        public.is_workspace_owner_or_admin(workspace_id, auth.uid())
+        AND invited_by = auth.uid()
+    );
+
+-- Accept invitation RPC function
+CREATE OR REPLACE FUNCTION public.accept_invitation(invite_id UUID)
+RETURNS UUID AS $$
+DECLARE
+    inv RECORD;
+    u_email TEXT;
+BEGIN
+    -- Get authenticated user's email
+    SELECT email INTO u_email FROM auth.users WHERE id = auth.uid();
+
+    -- Find matching pending invitation
+    SELECT * INTO inv FROM public.invitations 
+    WHERE id = invite_id AND LOWER(email) = LOWER(u_email) AND accepted_at IS NULL;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invalid, expired, or unauthorized invitation.';
+    END IF;
+
+    -- Add to workspace members
+    INSERT INTO public.workspace_members (workspace_id, user_id, role)
+    VALUES (inv.workspace_id, auth.uid(), inv.role)
+    ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
+    -- Mark accepted
+    UPDATE public.invitations 
+    SET accepted_at = NOW() 
+    WHERE id = invite_id;
+
+    RETURN inv.workspace_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Enable realtime replication for invitations
+ALTER PUBLICATION supabase_realtime ADD TABLE public.invitations;

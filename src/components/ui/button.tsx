@@ -10,15 +10,15 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "md", isLoading = false, children, disabled, ...props }, ref) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 select-none rounded-md";
+      "inline-flex items-center justify-center font-semibold transition-all duration-300 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 select-none rounded-lg";
 
     const variants = {
-      default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/20",
-      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/50",
-      outline: "border border-border bg-transparent hover:bg-secondary hover:text-foreground text-foreground",
-      ghost: "hover:bg-secondary/60 hover:text-foreground text-muted-foreground",
-      danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-600/20",
-      link: "text-primary underline-offset-4 hover:underline p-0 h-auto",
+      default: "bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 border border-blue-400/20 active:scale-[0.98] hover:translate-y-[-1px]",
+      secondary: "liquid-glass text-white border border-white/10 active:scale-[0.98] hover:translate-y-[-1px]",
+      outline: "border border-white/8 bg-transparent text-white hover:bg-white/5 active:scale-[0.98] hover:translate-y-[-1px]",
+      ghost: "bg-transparent text-muted-foreground hover:text-white hover:bg-white/5 active:scale-[0.98] hover:translate-y-[-1px]",
+      danger: "bg-red-950/30 text-red-400 hover:text-red-300 hover:bg-red-900/20 border border-red-500/20 active:scale-[0.98] hover:translate-y-[-1px]",
+      link: "text-blue-400 underline-offset-4 hover:underline p-0 h-auto",
     };
 
     const sizes = {

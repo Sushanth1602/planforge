@@ -17,11 +17,11 @@ import {
   addWeeks,
   subWeeks,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Flag, Layers, CheckSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, Flag, CheckSquare } from "lucide-react";
+import { GlassButton, GlassCard } from "@/components/ui/cinematic";
 
 export function CalendarView({ workspaceId }: { workspaceId?: string }) {
-  const { tasks, milestones, workspaces } = usePlanForge();
+  const { tasks, milestones } = usePlanForge();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -50,29 +50,29 @@ export function CalendarView({ workspaceId }: { workspaceId?: string }) {
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-cinematic-in pb-12">
       {/* Calendar Controls Bar */}
-      <div className="flex items-center justify-between gap-4 flex-wrap bg-card/60 p-3.5 rounded-xl border border-border">
+      <div className="flex items-center justify-between gap-4 flex-wrap bg-white/[0.015] border border-white/5 p-3 rounded-2xl">
         <div className="flex items-center gap-3">
-          <h2 className="text-base font-bold text-foreground">
+          <h2 className="text-sm font-bold text-white tracking-wide">
             {format(currentDate, viewMode === "month" ? "MMMM yyyy" : "'Week of' MMM d, yyyy")}
           </h2>
-          <div className="flex items-center rounded-lg border border-border bg-secondary/50 p-0.5">
+          <div className="flex items-center rounded-xl border border-white/5 bg-black/40 p-0.5">
             <button
               onClick={prevPeriod}
-              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary"
+              className="p-1 rounded-lg text-muted-foreground hover:text-white hover:bg-white/5 transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
+              className="px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:text-white transition-all"
             >
               Today
             </button>
             <button
               onClick={nextPeriod}
-              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary"
+              className="p-1 rounded-lg text-muted-foreground hover:text-white hover:bg-white/5 transition-all"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -81,19 +81,23 @@ export function CalendarView({ workspaceId }: { workspaceId?: string }) {
 
         {/* View Mode Toggle */}
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border bg-secondary/50 p-0.5 text-xs">
+          <div className="flex rounded-xl border border-white/5 bg-black/40 p-0.5 text-xs">
             <button
               onClick={() => setViewMode("month")}
-              className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                viewMode === "month" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase transition-all ${
+                viewMode === "month"
+                  ? "bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                  : "text-muted-foreground hover:text-white"
               }`}
             >
               Month
             </button>
             <button
               onClick={() => setViewMode("week")}
-              className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                viewMode === "week" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase transition-all ${
+                viewMode === "week"
+                  ? "bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                  : "text-muted-foreground hover:text-white"
               }`}
             >
               Week
@@ -103,16 +107,16 @@ export function CalendarView({ workspaceId }: { workspaceId?: string }) {
       </div>
 
       {/* Calendar Grid */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-white/5 bg-white/[0.005] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
         {/* Days Header */}
-        <div className="grid grid-cols-7 border-b border-border bg-secondary/40 text-center py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="grid grid-cols-7 border-b border-white/5 bg-white/[0.01] text-center py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day}>{day}</div>
           ))}
         </div>
 
         {/* Calendar Day Cells */}
-        <div className="grid grid-cols-7 divide-x divide-y divide-border/60">
+        <div className="grid grid-cols-7 divide-x divide-y divide-white/5 border-t border-white/5">
           {days.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, new Date());
@@ -122,33 +126,33 @@ export function CalendarView({ workspaceId }: { workspaceId?: string }) {
             return (
               <div
                 key={idx}
-                className={`min-h-[110px] p-2 transition-colors flex flex-col justify-between ${
-                  !isCurrentMonth ? "bg-secondary/15 text-muted-foreground/40" : "bg-card"
-                } ${isToday ? "ring-1 ring-inset ring-primary bg-primary/5" : ""}`}
+                className={`min-h-[110px] p-2 flex flex-col justify-between transition-all duration-300 ${
+                  !isCurrentMonth ? "bg-white/[0.002] text-muted-foreground/30" : "bg-transparent"
+                } ${isToday ? "border border-blue-500/30 bg-blue-500/[0.02] shadow-[0_0_15px_rgba(59,130,246,0.1)]" : ""}`}
               >
                 {/* Day Header Number */}
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-1.5">
                   <span
-                    className={`text-xs font-semibold h-5 w-5 flex items-center justify-center rounded-full ${
-                      isToday ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground"
+                    className={`text-[11px] font-bold h-5 w-5 flex items-center justify-center rounded-full ${
+                      isToday ? "bg-blue-600 text-white font-extrabold shadow-md shadow-blue-500/20" : "text-muted-foreground"
                     }`}
                   >
                     {format(day, "d")}
                   </span>
                   {(dayTasks.length > 0 || dayMilestones.length > 0) && (
-                    <span className="text-[10px] text-muted-foreground font-mono">
+                    <span className="text-[9px] text-muted-foreground font-mono">
                       {dayTasks.length + dayMilestones.length}
                     </span>
                   )}
                 </div>
 
                 {/* Deadlines Items */}
-                <div className="space-y-1 overflow-y-auto max-h-[80px]">
+                <div className="space-y-1.5 overflow-y-auto max-h-[85px] scrollbar-none">
                   {/* Milestones first */}
                   {dayMilestones.map((m) => (
                     <div
                       key={m.id}
-                      className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold truncate"
+                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 text-[9px] font-bold truncate"
                     >
                       <Flag className="h-2.5 w-2.5 shrink-0" />
                       <span className="truncate">{m.title}</span>
@@ -160,12 +164,12 @@ export function CalendarView({ workspaceId }: { workspaceId?: string }) {
                     <div
                       key={t.id}
                       onClick={() => setSelectedTaskId(t.id)}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium truncate cursor-pointer transition-all hover:scale-[1.02] ${
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[9px] font-semibold truncate cursor-pointer transition-all duration-300 hover:translate-y-[-1px] ${
                         t.status === "done"
-                          ? "bg-secondary/60 text-muted-foreground border-border line-through"
+                          ? "bg-white/5 text-muted-foreground border-white/5 line-through"
                           : t.priority === "urgent"
-                          ? "bg-red-500/10 text-red-400 border-red-500/30 font-semibold"
-                          : "bg-sky-500/10 text-sky-400 border-sky-500/30"
+                          ? "bg-red-500/10 text-red-400 border-red-500/20 font-bold"
+                          : "bg-blue-500/10 text-blue-400 border-blue-500/20"
                       }`}
                     >
                       <CheckSquare className="h-2.5 w-2.5 shrink-0" />

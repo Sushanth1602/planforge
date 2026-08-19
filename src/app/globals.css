@@ -4,75 +4,47 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
+    --background: 228 35% 4%; /* #05070C */
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 13%;
+    --card: 228 30% 7%; /* #080B12 style card */
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 12%;
+    --popover: 228 30% 9%; /* #0B1020 */
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 217 91% 60%; /* Electric Blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 17%;
+    --secondary: 228 30% 7%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 14% 15%;
+    --muted-foreground: 215 15% 65%;
 
-    --accent: 217 33% 20%;
+    --accent: 217 91% 60%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 63% 31%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 224 76% 48%;
+    --border: 228 20% 11%;
+    --input: 228 20% 11%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
-  }
-
-  .light {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --radius: 0.75rem;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border/40;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    background-color: #05070C;
+    @apply text-foreground antialiased selection:bg-primary/20 selection:text-primary;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 }
 
@@ -82,19 +54,83 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.2);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: rgba(255, 255, 255, 0.15);
 }
 
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Liquid Glass System */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03), 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.liquid-glass:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.05), 0 12px 38px 0 rgba(0, 0, 0, 0.5);
+}
+
+.liquid-glass:active {
+  transform: scale(0.985) translateY(0);
+}
+
+/* Cinematic In Motion */
+@keyframes cinematicIn {
+  from {
+    opacity: 0;
+    filter: blur(18px);
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.animate-cinematic-in {
+  opacity: 0;
+  animation: cinematicIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-0 { animation-delay: 0ms; }
+.delay-80 { animation-delay: 80ms; }
+.delay-160 { animation-delay: 160ms; }
+.delay-240 { animation-delay: 240ms; }
+.delay-320 { animation-delay: 320ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Reduced Motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  .animate-cinematic-in {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .liquid-glass {
+    transition: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .liquid-glass:hover {
+    transform: none !important;
+  }
+  .liquid-glass:active {
+    transform: none !important;
+  }
+}
+

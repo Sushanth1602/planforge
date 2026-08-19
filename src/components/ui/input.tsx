@@ -8,7 +8,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className
     <input
       type={type}
       className={cn(
-        "flex h-9 w-full rounded-md border border-border bg-secondary/50 px-3 py-1 text-sm text-foreground shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-9.5 w-full rounded-lg border border-white/8 bg-white/[0.035] px-3 py-1 text-sm text-white placeholder:text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-blue-500/30 focus-visible:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       ref={ref}
@@ -24,7 +24,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ 
   return (
     <textarea
       className={cn(
-        "flex min-h-[80px] w-full rounded-md border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-h-[80px] w-full rounded-lg border border-white/8 bg-white/[0.035] px-3.5 py-2.5 text-sm text-white placeholder:text-muted-foreground transition-all duration-300 focus-visible:outline-none focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-blue-500/30 focus-visible:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       ref={ref}

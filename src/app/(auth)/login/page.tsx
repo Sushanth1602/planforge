@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { usePlanForge } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Lock, Mail } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { login } = usePlanForge();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteCode = searchParams.get("invite_code");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +27,11 @@ export default function LoginPage() {
     setErrorMsg("");
     try {
       await login(email, password);
-      router.push("/dashboard");
+      if (inviteCode) {
+        router.push(`/accept-invitation?code=${inviteCode}`);
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       if (err.message && err.message.toLowerCase().includes("email not confirmed")) {
         setErrorMsg("Email not confirmed. Please check your inbox and click the confirmation link before logging in.");
@@ -103,11 +109,26 @@ export default function LoginPage() {
 
         <div className="text-center text-xs text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-primary font-semibold hover:underline">
+          <Link href={inviteCode ? `/signup?invite_code=${inviteCode}` : "/signup"} className="text-primary font-semibold hover:underline">
             Sign up
           </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
+        <div className="text-center space-y-4 max-w-md">
+          <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto" />
+          <p className="text-sm font-semibold text-foreground">Loading sign in...</p>
+        </div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

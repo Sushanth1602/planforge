@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopNav } from "@/components/layout/top-nav";
 import { X } from "lucide-react";
+import { AmbientBackground } from "@/components/ui/cinematic";
 
 export default function DashboardLayout({
   children,
@@ -13,7 +14,8 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground">
+    <div className="min-h-screen flex text-white relative">
+      <AmbientBackground />
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
@@ -34,7 +36,7 @@ export default function DashboardLayout({
               <X className="h-5 w-5" />
             </button>
             <div onClick={() => setIsMobileMenuOpen(false)} className="h-full">
-              <Sidebar />
+              <Sidebar isMobile />
             </div>
           </div>
         </div>
